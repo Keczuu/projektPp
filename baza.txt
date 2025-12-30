@@ -1,0 +1,6 @@
+1;andrzej;kocham kotki;brak;0;zatwierdzony
+2;jezrdna;to jest totalnie falszywa wiadomosc;fejk-news;7;do weryfikacji
+3;void;wulgaryzm;wulgaryzmy;19;do weryfikacji
+4;chimajo;kivhesbrivnbksfdnbers;spam;3;do weryfikacji
+5;bartek;bardzo nie odpowiednia tresc;nieodpowiednie-tresci;100;do weryfikacji
+6;hejterbartka;nienawidze bartka;hejt;1738;do weryfikacji
