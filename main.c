@@ -65,11 +65,35 @@ void moderacja(struct Post t1[], int licznik) {
     }
 }
 
+void sortowanie(struct Post t1[], int licznik) {
+    struct Post pom;
+    for (int i = 0; i < licznik - 1; i++) {
+        for (int j = 0; j < licznik - i - 1; j++) {
+            if (t1[j].liczbaZgloszen < t1[j+1].liczbaZgloszen) {
+                pom = t1[j];
+                t1[j] = t1[j+1];
+                t1[j+1] = pom;
+            }
+        }
+    }
+}
+
+void zapiszPlik(struct Post t1[], int licznik) {
+    FILE *plik = fopen("nowy.txt", "w");
+    for (int i = 0; i < licznik; i++) {
+        fprintf(plik, "id: %-4d, status: %-17s, autor: %-15s, liczba zgloszen: %d\n", t1[i].id, t1[i].status, t1[i].autor, t1[i].liczbaZgloszen);
+    }
+    fclose(plik);
+    printf("\nzapisano raport");
+}
+
 int main() {
     struct Post baza[100];
     int liczbaPostow = 0;
     wczytajzPliku(baza, &liczbaPostow);
     wyswietlBaze(baza, liczbaPostow);
     moderacja(baza, liczbaPostow);
+    sortowanie(baza, liczbaPostow);
+    zapiszPlik(baza, liczbaPostow);
     return 0;
 }
