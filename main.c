@@ -17,8 +17,8 @@ void wyswietlPosty(struct Post t1[], int rozmiar) {
     }
 }
 
-void wczytajzPliku(struct Post t1[], int *licznik) {
-    FILE *plik = fopen("baza.txt", "r");
+void wczytajzPliku(struct Post t1[], int *licznik, char *nazwaPliku) {
+    FILE *plik = fopen(nazwaPliku, "r");
     *licznik = 0;
     while (fscanf(plik, "%d;%[^;];%[^;];%[^;];%d;%[^\n]\n", &t1[*licznik].id, t1[*licznik].autor, t1[*licznik].tresc, t1[*licznik].kategoria, &t1[*licznik].liczbaZgloszen, t1[*licznik].status) != EOF) {
         (*licznik)++;
@@ -87,13 +87,45 @@ void zapiszPlik(struct Post t1[], int licznik) {
     printf("\nzapisano raport");
 }
 
-int main() {
-    struct Post baza[100];
+void usunPost(struct Post t1[], int *licznik) {
+    int id;
+    printf("\nid postu do usuniecia: ");
+    scanf("%d", &id);
+
+    if (strcmp(t1[id].status, "do weryfikacji") == 0) {
+        printf("nie mozna usunac postu ktory ma status do weryfikacji");
+        return;
+    }
+    for (int i = id; id < (*licznik) -1; i++) {
+        t1[i] = t1[i+1];
+    }
+    (*licznik)--;
+    printf("post id %d usuniety z pamieci", id);
+}
+
+void szukajPost(struct Post t1[], int *licznik) {
+    char autor[101];
+    printf("\n autor do wyszukania: ");
+    scanf("%100s", autor);
+
+    int znaleziony = 0;
+    for (int i = 0; i < *licznik; i++) {
+        if (strcmp(t1[i].autor, autor) == 0) {
+            printf("id: %d, tresc: %s, status: %s\n", t1[i].id, t1[i].tresc, t1[i].status);
+            znaleziony = 1;
+        }
+    }
+    if (!znaleziony) printf("brak postow");
+}
+
+int main(int argc, char *argv[]) {
+    struct Post *baza = (struct Post*)malloc(100 * sizeof(struct Post));
     int liczbaPostow = 0;
     wczytajzPliku(baza, &liczbaPostow);
     wyswietlBaze(baza, liczbaPostow);
     moderacja(baza, liczbaPostow);
     sortowanie(baza, liczbaPostow);
     zapiszPlik(baza, liczbaPostow);
+    free(baza);
     return 0;
 }
