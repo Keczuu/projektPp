@@ -2,33 +2,60 @@
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        printf("sposob uzycia: %s baza.txt\n", argv[0]);
+        printf("Sposob uzycia: %s <plik_bazy_wejsciowy> [plik_do_zapisu]\n", argv[0]);
         return 1;
     }
 
-    struct Post *baza = (struct Post*)malloc(100 * sizeof(struct Post));
-    if (baza == NULL) return 1;
+    char *plikOdczytu = argv[1];
+    char *plikZapisu = (argc >= 3) ? argv[2] : "raport.txt";
+    struct Post *baza = NULL;
+    wczytajzPliku(&baza, plikOdczytu);
 
-    int liczbaPostow = 0;
     int wybor;
-
-    wczytajzPliku(baza, &liczbaPostow, argv[1]);
-
-
     do {
-        printf("\n1. Wyswietl\n2. Moderuj\n3. Sortuj\n4. Szukaj\n5. Usun\n6. Raport\n0. Wyjdz\nWybor: ");
-        scanf("%d", &wybor);
+        printf("\n--- MENU GLOWNE ---\n");
+        printf("1. Wyswietl baze\n");
+        printf("2. Moderuj (weryfikacja postow)\n");
+        printf("3. Sortuj (wg liczby zgloszen)\n");
+        printf("4. Szukaj (wg autora - fragment)\n");
+        printf("5. Usun post (wg ID)\n");
+        printf("6. Zapisz do pliku\n");
+        printf("0. Wyjdz\n");
+        printf("Wybor: ");
+
+        if (scanf("%d", &wybor) != 1) {
+            while(getchar() != '\n');
+            wybor = -1;
+        }
 
         switch (wybor) {
-            case 1: wyswietlBaze(baza, liczbaPostow); break;
-            case 2: moderacja(baza, liczbaPostow); break;
-            case 3: sortowanie(baza, liczbaPostow); break;
-            case 4: szukajPost(baza, &liczbaPostow); break;
-            case 5: usunPost(baza, &liczbaPostow); break;
-            case 6: zapiszPlik(baza, liczbaPostow); break;
+            case 1: 
+                wyswietlBaze(baza); 
+                break;
+            case 2: 
+                moderacja(baza); 
+                break;
+            case 3: 
+                sortujPostyZgloszenia(baza); 
+                wyswietlBaze(baza);
+                break;
+            case 4: 
+                szukajPostAutor(baza); 
+                break;
+            case 5: 
+                usunPost(&baza); 
+                break;
+            case 6: 
+                zapiszDoPliku(baza, plikZapisu); 
+                break;
+            case 0:
+                printf("Konczenie programu...\n");
+                break;
+            default:
+                printf("Niepoprawny wybor.\n");
         }
     } while (wybor != 0);
 
-    free(baza);
+    zwolnijPamiec(&baza);
     return 0;
 }
