@@ -1,102 +1,216 @@
 #include "post.h"
 
-void wczytajzPliku(struct Post t1[], int *licznik, char *nazwaPliku) {
-    FILE *plik = fopen(nazwaPliku, "r");
-    *licznik = 0;
-    while (fscanf(plik, "%d;%[^;];%[^;];%[^;];%d;%[^\n]\n", &t1[*licznik].id, t1[*licznik].autor, t1[*licznik].tresc, t1[*licznik].kategoria, &t1[*licznik].liczbaZgloszen, t1[*licznik].status) != EOF) {
-        (*licznik)++;
-        if (*licznik >= 100) break;
+void dodajElementListy(struct Post **head, int id, char *autor, char *tresc, char *kat, int zgloszenia, char *status) {
+    struct Post *nowy = (struct Post*)malloc(sizeof(struct Post));
+    if (nowy == NULL) return;
+    nowy->id = id;
+    strcpy(nowy->autor, autor);
+    strcpy(nowy->tresc, tresc);
+    strcpy(nowy->kategoria, kat);
+    nowy->liczbaZgloszen = zgloszenia;
+    strcpy(nowy->status, status);
+    nowy->next = NULL;
+
+    if (*head == NULL) {
+        *head = nowy;
+    } else {
+        struct Post *temp = *head;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = nowy;
     }
-    fclose(plik);
-    printf("Wczytano %d postow", *licznik);
 }
 
-void wyswietlBaze(struct Post t1[], int licznik) {
-    if (licznik == 0) {
+void zwolnijPamiec(struct Post **head) {
+    struct Post *current = *head;
+    struct Post *next;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+    *head = NULL;
+}
+
+void wczytajzPliku(struct Post **head, char *nazwaPliku) {
+    FILE *plik = fopen(nazwaPliku, "r");
+    if (!plik) {
+        printf("Nie mozna otworzyc pliku lub plik nie istnieje.\n");
+        return;
+    }
+
+    int id, zgloszenia;
+    char autor[101], tresc[281], kat[101], status[101];
+    int licznik = 0;
+
+    while (fscanf(plik, "%d;%[^;];%[^;];%[^;];%d;%[^\n]\n", &id, autor, tresc, kat, &zgloszenia, status) != EOF) {
+        dodajElementListy(head, id, autor, tresc, kat, zgloszenia, status);
+        licznik++;
+    }
+    fclose(plik);
+    printf("Wczytano %d postow do listy dynamicznej.\n", licznik);
+}
+
+void wyswietlBaze(struct Post *head) {
+    if (head == NULL) {
         printf("\nBaza jest pusta\n");
         return;
     }
     printf("\n%-4s | %-15s | %-30s | %-15s | %-3s | %-15s\n", "ID", "AUTOR", "TRESC", "KATEGORIA", "LICZBAZGLOSZEN", "STATUS");
-    
-    for (int i = 0; i < licznik; i++) {
-        printf("%-4d | %-15s | %-30.30s | %-15s | %-3d | %-15s\n", t1[i].id, t1[i].autor, t1[i].tresc, t1[i].kategoria, t1[i].liczbaZgloszen, t1[i].status);
+    printf("--------------------------------------------------------------------------------------------------\n");
+
+    struct Post *current = head;
+    while (current != NULL) {
+        printf("%-4d | %-15s | %-30.30s | %-15s | %-3d | %-15s\n", current->id, current->autor, current->tresc, current->kategoria, current->liczbaZgloszen, current->status); current = current->next;
     }
 }
 
-void moderacja(struct Post t1[], int licznik) {
+void moderacja(struct Post *head) {
     int znalezionyPost = 0;
-    for (int i = 0; i < licznik; i++) {
-        if (strcmp(t1[i].status, "do weryfikacji") == 0) {
+    struct Post *current = head;
+
+    while (current != NULL) {
+        if (strcmp(current->status, "do weryfikacji") == 0) {
             znalezionyPost = 1;
-            printf("\nid: %d, autor: %s\n", t1[i].id, t1[i].autor);
-            printf("tresc: %s\n", t1[i].tresc);
-            printf("powod zgloszenia: `%s`, ilosc zgloszen %d\n", t1[i].kategoria, t1[i].liczbaZgloszen);
+            printf("\nid: %d, autor: %s\n", current->id, current->autor);
+            printf("tresc: %s\n", current->tresc);
+            printf("powod zgloszenia: `%s`, ilosc zgloszen %d\n", current->kategoria, current->liczbaZgloszen);
             printf("1 - zostaw post, 2 - usun post\n");
+            
             int potwierdzenie;
             scanf("%d", &potwierdzenie);
             if (potwierdzenie == 1) {
-                strcpy(t1[i].status, "zatwierdzony");
+                strcpy(current->status, "zatwierdzony");
                 printf("post zatwierdzony\n");
             } else if (potwierdzenie == 2) {
-                strcpy(t1[i].status, "usuniety");
-                printf("post usuniety\n");
+                strcpy(current->status, "usuniety");
+                printf("post oznaczony jako usuniety\n");
             }
         }
+        current = current->next;
     }
+
     if (!znalezionyPost) {
-        printf("brak znalezionych postow\n");
+        printf("brak postow do weryfikacji\n");
     }
 }
 
-void sortowanie(struct Post t1[], int licznik) {
-    struct Post pom;
-    for (int i = 0; i < licznik - 1; i++) {
-        for (int j = 0; j < licznik - i - 1; j++) {
-            if (t1[j].liczbaZgloszen < t1[j+1].liczbaZgloszen) {
-                pom = t1[j];
-                t1[j] = t1[j+1];
-                t1[j+1] = pom;
+void sortujPostyZgloszenia(struct Post *head) {
+    if (head == NULL) return;
+
+    int zamiana;
+    struct Post *ptr1;
+    struct Post *lptr = NULL;
+
+    int tempId, tempZgl;
+    char tempAutor[101], tempTresc[281], tempKat[101], tempStatus[101];
+
+    do {
+        zamiana = 0;
+        ptr1 = head;
+
+        while (ptr1->next != lptr) {
+            if (ptr1->liczbaZgloszen < ptr1->next->liczbaZgloszen) { 
+                tempId = ptr1->id;
+                ptr1->id = ptr1->next->id;
+                ptr1->next->id = tempId;
+                tempZgl = ptr1->liczbaZgloszen;
+                ptr1->liczbaZgloszen = ptr1->next->liczbaZgloszen;
+                ptr1->next->liczbaZgloszen = tempZgl;
+
+                strcpy(tempAutor, ptr1->autor);
+                strcpy(ptr1->autor, ptr1->next->autor);
+                strcpy(ptr1->next->autor, tempAutor);
+                strcpy(tempTresc, ptr1->tresc);
+                strcpy(ptr1->tresc, ptr1->next->tresc);
+                strcpy(ptr1->next->tresc, tempTresc);
+                strcpy(tempKat, ptr1->kategoria);
+                strcpy(ptr1->kategoria, ptr1->next->kategoria);
+                strcpy(ptr1->next->kategoria, tempKat);
+                strcpy(tempStatus, ptr1->status);
+                strcpy(ptr1->status, ptr1->next->status);
+                strcpy(ptr1->next->status, tempStatus);
+
+                zamiana = 1;
             }
+            ptr1 = ptr1->next;
         }
-    }
+        lptr = ptr1;
+    } while (zamiana);
+    
+    printf("\nPosortowano baze wg liczby zgloszen.\n");
 }
 
-void zapiszPlik(struct Post t1[], int licznik) {
-    FILE *plik = fopen("nowy.txt", "w");
-    for (int i = 0; i < licznik; i++) {
-        fprintf(plik, "id: %-4d, status: %-17s, autor: %-15s, liczba zgloszen: %d\n", t1[i].id, t1[i].status, t1[i].autor, t1[i].liczbaZgloszen);
-    }
-    fclose(plik);
-    printf("\nzapisano raport");
-}
-
-void usunPost(struct Post t1[], int *licznik) {
-    int id;
-    printf("\nid postu do usuniecia: ");
-    scanf("%d", &id);
-
-    if (strcmp(t1[id].status, "do weryfikacji") == 0) {
-        printf("nie mozna usunac postu ktory ma status do weryfikacji");
+void zapiszDoPliku(struct Post *head, char *nazwaPliku) {
+    FILE *plik = fopen(nazwaPliku, "w");
+    if (!plik) {
+        printf("Blad zapisu do pliku!\n");
         return;
     }
-    for (int i = id; id < (*licznik) -1; i++) {
-        t1[i] = t1[i+1];
+
+    struct Post *current = head;
+    while (current != NULL) {
+        fprintf(plik, "%d;%s;%s;%s;%d;%s\n", current->id, current->autor, current->tresc, current->kategoria, current->liczbaZgloszen, current->status); current = current->next;
     }
-    (*licznik)--;
-    printf("post id %d usuniety z pamieci", id);
+    fclose(plik);
+    printf("\nZapisano dane do pliku %s\n", nazwaPliku);
 }
 
-void szukajPost(struct Post t1[], int *licznik) {
+void usunPost(struct Post **head) {
+    int id;
+    printf("\nID postu do usuniecia: ");
+    scanf("%d", &id);
+
+    struct Post *temp = *head;
+    struct Post *prev = NULL;
+
+    if (temp != NULL && temp->id == id) {
+        if (strcmp(temp->status, "do weryfikacji") == 0) {
+            printf("Nie mozna usunac postu do weryfikacji!\n");
+            return;
+        }
+        *head = temp->next;
+        free(temp);
+        printf("Post ID %d usuniety.\n", id);
+        return;
+    }
+
+    while (temp != NULL && temp->id != id) {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    if (temp == NULL) {
+        printf("Nie znaleziono postu o ID %d.\n", id);
+        return;
+    }
+
+    if (strcmp(temp->status, "do weryfikacji") == 0) {
+        printf("Nie mozna usunac postu do weryfikacji!\n");
+        return;
+    }
+
+    prev->next = temp->next;
+    free(temp);
+    printf("Post ID %d usuniety.\n", id);
+}
+
+void szukajPostAutor(struct Post *head) {
     char autor[101];
-    printf("\n autor do wyszukania: ");
+    printf("\nAutor do wyszukania (poczatek nazwy): ");
     scanf("%100s", autor);
 
     int znaleziony = 0;
-    for (int i = 0; i < *licznik; i++) {
-        if (strcmp(t1[i].autor, autor) == 0) {
-            printf("id: %d, tresc: %s, status: %s\n", t1[i].id, t1[i].tresc, t1[i].status);
+    struct Post *current = head;
+
+    while (current != NULL) {
+        if (strstr(current->autor, autor) != NULL) {
+            printf("ID: %d,  autor: %s,  tresc: %.50s...,  status: %s\n", 
+                   current->id, current->autor, current->tresc, current->status);
             znaleziony = 1;
         }
+        current = current->next;
     }
-    if (!znaleziony) printf("brak postow");
+    if (!znaleziony) printf("Brak postow spelniajacych kryteria.\n");
 }
