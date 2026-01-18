@@ -214,3 +214,49 @@ void szukajPostAutor(struct Post *head) {
     }
     if (!znaleziony) printf("Brak postow spelniajacych kryteria.\n");
 }
+
+void edytujPost(struct Post *head) {
+    int id;
+    printf("Podaj ID postu do edycji: ");
+    if (scanf("%d", &id) != 1) {
+        while(getchar() != '\n');
+        return;
+    }
+
+    struct Post *current = head;
+    int znaleziono = 0;
+    while (current != NULL) {
+        if (current->id == id) {
+            znaleziono = 1;
+            if (strcmp(current->status, "usuniety") == 0) {
+                printf("Post z danym ID jest usuniety. Nie mozna go zedytowac.");
+                return;
+            }
+
+            printf("\nEdycja postu ID: %d\n", current->id);
+            printf("Obecna tresc: %s\n", current->tresc);
+            printf("Obecna kategoria: %s\n", current->kategoria);
+            printf("Wpisz nowa tresc: ");
+            char tresc1[281];
+            while(getchar() != '\n');
+            scanf("%[^\n]", tresc1);
+            if(strlen(tresc1) > 0) {
+                strcpy(current->tresc, tresc1);
+            }
+            printf("Wpisz nowa kategorie: ");
+            while(getchar() != '\n');
+            tresc1[0] = '\0';
+            scanf("%[^\n]", tresc1);
+            if (strlen(tresc1) > 0) {
+                strcpy(current->kategoria, tresc1);
+            }
+            strcpy(current->status, "do weryfikacji");
+            printf("Post zaktualizowany i przeslany do weryfikacji.\n");
+            break;
+        }
+        current = current->next;
+    }
+    if (!znaleziono) {
+        printf("Nie znaleziono postu o ID %d\n", id);
+    }
+}
