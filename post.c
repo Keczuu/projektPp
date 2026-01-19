@@ -260,3 +260,26 @@ void edytujPost(struct Post *head) {
         printf("Nie znaleziono postu o ID %d\n", id);
     }
 }
+
+void szukajPostZgloszenia(struct Post *head) {
+    int liczba;
+    printf("\nSzukaj postow o liczbie zgloszen wiekszej lub rownej: ");
+    scanf("%d", &liczba);
+
+    printf("\nWyniki wyszukiwania:\n");
+    printf("%-4s | %-15s | %-30s | %-3s\n", "ID", "AUTOR", "TRESC", "ZGL");
+    printf("--------------------------------------------------------------------------------------------------\n");
+
+    int znaleziono = 0;
+    struct Post *current = head;
+    while (current != NULL) {
+        if (current->liczbaZgloszen >= liczba) {
+            printf("%-4d | %-15s | %-30.30s | %-3d\n", current->id, current->autor, current->tresc, current->liczbaZgloszen);
+            znaleziono = 1;
+        }
+        current = current->next;
+    }
+    if (!znaleziono) {
+        printf("Brak postow.");
+    }
+}
