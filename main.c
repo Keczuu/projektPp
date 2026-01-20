@@ -16,12 +16,14 @@ int main(int argc, char *argv[]) {
         printf("\n--- MENU GLOWNE ---\n");
         printf("1. Wyswietl baze\n");
         printf("2. Moderuj (weryfikacja postow)\n");
-        printf("3. Edytuj post\n");
-        printf("4. Usun post\n");
-        printf("5. Szukaj wedlug autora\n");
-        printf("6. Szukaj wedlug liczby zgloszen\n");
-        printf("7. Sortuj wedlug liczby zgloszen\n");
-        printf("9. Zapisz do pliku\n");
+        printf("3. Dodaj nowy post\n");
+        printf("4. Edytuj post\n");
+        printf("5. Usun post (po ID)\n");
+        printf("6. Szukaj wedlug autora\n");
+        printf("7. Szukaj wedlug liczby zgloszen\n");
+        printf("8. Sortuj wedlug liczby zgloszen\n");
+        printf("9. Sortuj wedlug autora\n");
+        printf("10. Zapisz do pliku\n");
         printf("0. Wyjdz\n");
         printf("Wybor: ");
 
@@ -38,22 +40,29 @@ int main(int argc, char *argv[]) {
                 moderacja(baza); 
                 break;
             case 3: 
-                edytujPost(baza); 
+                dodajNowyPost(&baza); 
                 break;
             case 4: 
-                usunPost(&baza); 
+                edytujPost(baza); 
                 break;
             case 5: 
-                szukajPostAutor(baza); 
+                usunPost(&baza); 
                 break;
             case 6:
-                szukajPostZgloszenia(baza);
+                szukajPostAutor(baza);
                 break;
             case 7: 
+                szukajPostZgloszenia(baza);
+                break;
+            case 8:
                 sortujPostyZgloszenia(baza); 
                 wyswietlBaze(baza);
                 break;
-            case 9: 
+            case 9:
+                sortujPostyAutor(baza);
+                wyswietlBaze(baza);
+                break;
+            case 10: 
                 zapiszDoPliku(baza, plikZapisu); 
                 break;
             case 0:
