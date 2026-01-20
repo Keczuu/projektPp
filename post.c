@@ -283,3 +283,75 @@ void szukajPostZgloszenia(struct Post *head) {
         printf("Brak postow.");
     }
 }
+
+void sortujPostyAutor(struct Post *head) {
+    if (head == NULL) return;
+
+    int zamiana;
+    struct Post *ptr1;
+    struct Post *lptr = NULL;
+
+    int tempId, tempZgl;
+    char tempAutor[101], tempTresc[281], tempKat[101], tempStatus[101];
+
+    do {
+        zamiana = 0;
+        ptr1 = head;
+
+        while (ptr1->next != lptr) {
+            if (strcmp(ptr1->autor, ptr1->next->autor) > 0) { 
+                tempId = ptr1->id;
+                ptr1->id = ptr1->next->id;
+                ptr1->next->id = tempId;
+                tempZgl = ptr1->liczbaZgloszen;
+                ptr1->liczbaZgloszen = ptr1->next->liczbaZgloszen;
+                ptr1->next->liczbaZgloszen = tempZgl;
+
+                strcpy(tempAutor, ptr1->autor);
+                strcpy(ptr1->autor, ptr1->next->autor);
+                strcpy(ptr1->next->autor, tempAutor);
+                strcpy(tempTresc, ptr1->tresc);
+                strcpy(ptr1->tresc, ptr1->next->tresc);
+                strcpy(ptr1->next->tresc, tempTresc);
+                strcpy(tempKat, ptr1->kategoria);
+                strcpy(ptr1->kategoria, ptr1->next->kategoria);
+                strcpy(ptr1->next->kategoria, tempKat);
+                strcpy(tempStatus, ptr1->status);
+                strcpy(ptr1->status, ptr1->next->status);
+                strcpy(ptr1->next->status, tempStatus);
+
+                zamiana = 1;
+            }
+            ptr1 = ptr1->next;
+        }
+        lptr = ptr1;
+    } while (zamiana);
+
+    printf("\nPosortowano baze alfabetycznie wedlug autora.\n");
+}
+
+void dodajNowyPost(struct Post **head) {
+    int id;
+    char autor[101], tresc[281];
+    
+    int maxId = 0;
+    struct Post *temp = *head;
+    while(temp != NULL) {
+        if(temp->id > maxId) maxId = temp->id;
+        temp = temp->next;
+    }
+    id = maxId + 1;
+
+    printf("\nDodawanie nowego posta\n");
+
+    printf("Autor: ");
+    scanf("%100s", autor);
+    while(getchar() != '\n');
+
+    printf("Tresc: ");
+    scanf("%[^\n]", tresc);
+    while(getchar() != '\n');
+
+    dodajElementListy(head, id, autor, tresc, "brak", 0, "do weryfikacji");
+    printf("Dodano nowy post ID: %d\n", id);
+}
